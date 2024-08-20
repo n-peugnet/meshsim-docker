@@ -1,9 +1,9 @@
-ARG PYTHON_VERSION=3
+ARG PYTHON_VERSION=3.8
 
 ###
 ### Stage 0: python builder
 ###
-FROM docker.io/python:${PYTHON_VERSION}-slim-stretch as python-builder
+FROM docker.io/python:${PYTHON_VERSION}-slim-buster as python-builder
 
 # install the OS build deps
 
@@ -50,6 +50,7 @@ RUN git clone https://github.com/unbrice/ksm_preload && \
 
 COPY synapse/ /synapse
 RUN pip install --prefix="/install" --no-warn-script-location \
+        simplejson \
         lxml \
         psycopg2-binary \
         /synapse
@@ -62,7 +63,7 @@ RUN pip install --prefix="/install" --no-warn-script-location flask
 ### Stage 1: Go build
 ###
 
-FROM docker.io/golang:1.12-stretch as go-builder
+FROM docker.io/golang:1.12-buster as go-builder
 
 COPY coap-proxy /build
 WORKDIR /build
@@ -73,7 +74,7 @@ RUN go build
 ### Stage 2: runtime
 ###
 
-FROM docker.io/python:${PYTHON_VERSION}-slim-stretch
+FROM docker.io/python:${PYTHON_VERSION}-slim-buster
 
 RUN apt-get update && apt-get install -y \
     procps \
