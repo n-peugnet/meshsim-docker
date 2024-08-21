@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.8
+ARG PYTHON_VERSION=3.6.11
 
 ###
 ### Stage 0: python builder
@@ -29,7 +29,6 @@ RUN apt-get install -y \
 # will install them again.)
 
 RUN pip install --prefix="/install" --no-warn-script-location \
-        cryptography \
         msgpack-python \
         pillow \
         pynacl
@@ -49,14 +48,14 @@ RUN git clone https://github.com/unbrice/ksm_preload && \
 # now install synapse and all of the python deps to /install.
 
 COPY synapse/ /synapse
-RUN pip install --prefix="/install" --no-warn-script-location \
+RUN pip install --prefix="/install" --no-warn-script-location --use-feature=2020-resolver \
         simplejson \
         lxml \
         psycopg2-binary \
         /synapse
 
 # for topologiser
-RUN pip install --prefix="/install" --no-warn-script-location flask
+RUN pip install --prefix="/install" --no-warn-script-location --use-feature=2020-resolver flask==1.1.4
 
 
 ###
