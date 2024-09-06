@@ -68,7 +68,7 @@ database:
 
 event_cache_size: "{{ SYNAPSE_EVENT_CACHE_SIZE or "10K" }}"
 verbose: 0
-log_file: "/data/homeserver.log"
+#log_file: "/data/homeserver.log"
 log_config: "/compiled/log.config"
 
 ## Ratelimiting ##
@@ -121,6 +121,7 @@ recaptcha_siteverify_api: "https://www.google.com/recaptcha/api/siteverify"
 recaptcha_public_key: "YOUR_PUBLIC_KEY"
 recaptcha_private_key: "YOUR_PRIVATE_KEY"
 enable_registration_captcha: False
+enable_registration_without_verification: True
 recaptcha_siteverify_api: "https://www.google.com/recaptcha/api/siteverify"
 {% endif %}
 

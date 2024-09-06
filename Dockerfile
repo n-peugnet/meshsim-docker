@@ -1,4 +1,5 @@
-ARG PYTHON_VERSION=3.6.11
+ARG PYTHON_VERSION=3.8
+ARG RUST_VERSION=1.79.0
 
 ###
 ### Stage 0: python builder
@@ -9,6 +10,7 @@ FROM docker.io/python:${PYTHON_VERSION}-slim-buster as python-builder
 
 RUN apt-get update && apt-get install -y \
         build-essential \
+        curl \
         libffi-dev \
         sqlite3 \
         libssl-dev \
@@ -16,6 +18,11 @@ RUN apt-get update && apt-get install -y \
         libxslt1-dev \
         libxml2-dev \
         libpq-dev
+
+# for synapse rust dependencies
+ARG RUST_VERSION
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${RUST_VERSION}
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # for ksm_preload
 RUN apt-get install -y \
@@ -48,14 +55,14 @@ RUN git clone https://github.com/unbrice/ksm_preload && \
 # now install synapse and all of the python deps to /install.
 
 COPY synapse/ /synapse
-RUN pip install --prefix="/install" --no-warn-script-location --use-feature=2020-resolver \
+RUN pip install --prefix="/install" --no-warn-script-location \
         simplejson \
         lxml \
         psycopg2-binary \
         /synapse
 
 # for topologiser
-RUN pip install --prefix="/install" --no-warn-script-location --use-feature=2020-resolver flask==1.1.4
+RUN pip install --prefix="/install" --no-warn-script-location flask==3.0.3
 
 
 ###
