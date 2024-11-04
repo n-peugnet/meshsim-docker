@@ -56,6 +56,7 @@ RUN git clone https://github.com/unbrice/ksm_preload && \
 
 COPY synapse/ /synapse
 RUN pip install --prefix="/install" --no-warn-script-location \
+        Twisted[tls]==24.7.0 \
         simplejson \
         lxml \
         psycopg2-binary \
