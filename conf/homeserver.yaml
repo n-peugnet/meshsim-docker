@@ -214,3 +214,8 @@ email:
    notif_for_new_users: True
    riot_base_url: "https://{{ SYNAPSE_SERVER_NAME }}"
 {% endif %}
+
+## Other features ##
+
+presence:
+    enabled: false
