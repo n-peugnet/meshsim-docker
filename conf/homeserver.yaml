@@ -15,6 +15,15 @@ pid_file: /homeserver.pid
 web_client: False
 soft_file_limit: 0
 
+## Federation
+
+federation_verify_certificates: false
+trusted_key_servers: []
+ip_range_whitelist:
+  - '172.16.0.0/12'
+  - '127.0.0.1'
+  - '::1'
+
 ## Ports ##
 
 listeners:
@@ -149,15 +158,6 @@ bcrypt_rounds: 12
 allow_guest_access: {{ "True" if SYNAPSE_ALLOW_GUEST else "False" }}
 enable_group_creation: true
 
-# The list of identity servers trusted to verify third party
-# identifiers by this server.
-#
-# Also defines the ID server which will be called when an account is
-# deactivated (one will be picked arbitrarily).
-trusted_third_party_id_servers:
-    - matrix.org
-    - vector.im
-
 ## Metrics ###
 
 {% if SYNAPSE_REPORT_STATS.lower() == "yes" %}
@@ -192,14 +192,6 @@ expire_access_token: False
 signing_key_path: "/data/{{ SYNAPSE_SERVER_NAME }}.signing.key"
 old_signing_keys: {}
 key_refresh_interval: "1d" # 1 Day.
-
-# The trusted servers to download signing keys from.
-perspectives:
-  servers:
-    "matrix.org":
-      verify_keys:
-        "ed25519:auto":
-          key: "Noi6WqcDj0QmPxCNQqgezwTlBKrfqehY1u2FyWP9uYw"
 
 password_config:
    enabled: true

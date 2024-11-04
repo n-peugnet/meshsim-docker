@@ -29,6 +29,15 @@ def generate_secrets(environ, secrets):
                 with open(filename, "w") as handle: handle.write(value)
             environ[secret] = value
 
+def generate_tls_key_cert():
+    servername = environ["SYNAPSE_SERVER_NAME"]
+    subprocess.check_output([
+        'openssl', 'req', '-x509', '-newkey', 'rsa:4096',
+        '-keyout', f'/data/{servername}.tls.key',
+        '-out', f'/data/{servername}.tls.crt',
+        '-days', '365', '-nodes', '-subj', '/O=matrix',
+    ])
+
 # Prepare the configuration
 mode = sys.argv[1] if len(sys.argv) > 1 else None
 environ = os.environ.copy()
@@ -38,6 +47,9 @@ for e in environ:
 
 ownership = "{}:{}".format(environ.get("UID", 991), environ.get("GID", 991))
 args = ["python", "-m", "synapse.app.homeserver"]
+
+# For now, always generate certificates, even if they are not used if TLS is disabled
+generate_tls_key_cert()
 
 # In generate mode, generate a configuration, missing keys, then exit
 if mode == "generate":
