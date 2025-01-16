@@ -84,6 +84,7 @@ RUN go build
 FROM docker.io/python:${PYTHON_VERSION}-slim-buster
 
 RUN apt-get update && apt-get install -y \
+    sqlite3 \
     procps \
     net-tools \
     iproute2 \

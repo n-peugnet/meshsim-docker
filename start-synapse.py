@@ -82,8 +82,16 @@ else:
     # Generate missing keys and start synapse
     subprocess.check_output(args + ["--generate-keys"])
 
-    # we register our test users in add_accounts.sh now to avoid having to wait for HS launch
-    #os.system("(sleep 10; /usr/local/bin/register_new_matrix_user -u matthew -p secret -c /compiled/homeserver.yaml -a) &");
+    # Initialise database
+    for f in glob.glob("/usr/local/lib/python3.8/site-packages/synapse/storage/schema/*/full_schemas/72/full.sql.sqlite"):
+        os.system(f"sqlite3 /data/homeserver.db < {f}")
+    os.system("sqlite3 /data/homeserver.db < /usr/local/lib/python3.8/site-packages/synapse/storage/schema/common/schema_version.sql")
+    os.system("echo \"insert into schema_version(lock, version, upgraded) values ('X', 72, false)\" | sqlite3 /data/homeserver.db")
+
+    # Register test account
+    sql = f"""insert into users(name, password_hash) values ('@matthew:{environ["SYNAPSE_SERVER_NAME"]}', '\\$2b\\$12\\$oOZr9g6bPScmPrpJHv/uuu2piCg7kN8ia/BAlfW6wske/1kLf8kze');
+insert into access_tokens(id, user_id, token) values (123123, '@matthew:{environ["SYNAPSE_SERVER_NAME"]}', 'fake_token');"""
+    os.system(f"echo \"{sql}\" | sqlite3 /data/homeserver.db");
 
     os.execv("/usr/local/bin/python", args)
 
