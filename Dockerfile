@@ -62,10 +62,6 @@ RUN pip install --prefix="/install" --no-warn-script-location \
         psycopg2-binary \
         /synapse
 
-# for topologiser
-RUN pip install --prefix="/install" --no-warn-script-location flask==3.0.3
-
-
 ###
 ### Stage 1: Go build
 ###
@@ -96,7 +92,6 @@ RUN apt-get update && apt-get install -y \
     lsof \
     supervisor \
     netcat \
-    python-psycopg2 \
     libpq-dev
 
 COPY --from=python-builder /install /usr/local
@@ -104,7 +99,7 @@ COPY --from=python-builder /install /usr/local
 COPY --from=go-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
 
-COPY ./meshsim/topologiser /topologiser
+COPY --from=gitlab.lip6.fr:5050/ie6/meshsim:master /bin/topologiser /topologiser
 
 COPY ./meshsim-docker/start.sh /
 COPY ./meshsim-docker/start-synapse.py /
