@@ -99,7 +99,7 @@ COPY --from=python-builder /install /usr/local
 COPY --from=go-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
 
-COPY --from=gitlab.lip6.fr:5050/ie6/meshsim:master /bin/topologiser /topologiser
+COPY --from=gitlab.lip6.fr:5050/ie6/meshsim:latest /bin/topologiser /topologiser
 
 COPY ./meshsim-docker/start.sh /
 COPY ./meshsim-docker/start-synapse.py /
