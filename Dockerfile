@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y \
         libssl-dev \
         libjpeg-dev \
         libxslt1-dev \
-        libxml2-dev \
-        libpq-dev
+        libxml2-dev
 
 # for synapse rust dependencies
 ARG RUST_VERSION
@@ -59,7 +58,6 @@ RUN pip install --prefix="/install" --no-warn-script-location \
         Twisted[tls]==24.7.0 \
         simplejson \
         lxml \
-        psycopg2-binary \
         /synapse
 
 ###
@@ -91,8 +89,7 @@ RUN apt-get update && apt-get install -y \
     less \
     lsof \
     supervisor \
-    netcat \
-    libpq-dev
+    netcat
 
 COPY --from=python-builder /install /usr/local
 
