@@ -43,6 +43,11 @@ Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim)
    * Run `docker build -t synapse -f meshsim-docker/Dockerfile .` from the top of the
      `matrix-low-bandwidth` directory (***not*** inside the `synapse` repo)
 
+#### Usage with Meshsim
+
+Checkout a copy of [Meshsim](https://gitlab.lip6.fr/ie6/meshsim),
+then run `./meshsim.py --start=path/to/start_hs.sh 0`.
+
  * Optionally edit `start_hs.sh` to add bind mount to a local working copy of
    synapse. This allows doing synapse dev without having to rebuild images. See
    `start_hs.sh` for details. An example of the `docker run` command in `start_hs.sh` is below:
