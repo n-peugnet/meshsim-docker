@@ -1,0 +1,6 @@
+[submodule "synapse"]
+	path = synapse
+	url = https://github.com/n-peugnet/synapse
+[submodule "coap-proxy"]
+	path = coap-proxy
+	url = https://github.com/n-peugnet/coap-proxy

@@ -101,10 +101,9 @@ COPY coap-proxy/maps /proxy/maps
 
 COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser /topologiser
 
-COPY ./meshsim-docker/start.sh /
-COPY ./meshsim-docker/start-synapse.py /
-COPY ./meshsim-docker/conf /conf
-COPY ./meshsim-docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY start.sh start-synapse.py /
+COPY conf /conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 VOLUME ["/data"]
 

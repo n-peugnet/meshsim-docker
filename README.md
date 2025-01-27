@@ -1,6 +1,6 @@
 # Synapse for Meshsim
 
-Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim)
+Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim).
 
 ## Build the image
 
@@ -20,28 +20,20 @@ Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim)
    grep -H '' /sys/kernel/mm/ksm/run/*
    ```
 
- * create a empty directory, e.g. `matrix-low-bandwidth`
-
  * Build the (KSM-capable) docker image:
-   * Clone `synapse` repo and checkout the `n-peugnet/low-bandwidth` branch (inside the `matrix-low-bandwidth` directory)
+
+   * Clone the `synapse-meshsim` repo with its submodules:
      ```
-     matrix-low-bandwidth$ git clone https://github.com/n-peugnet/synapse
-     matrix-low-bandwidth$ cd synapse
-     synapse$ git checkout n-peugnet/low-bandwidth
+     git clone --recurse-submodules https://gitlab.lip6.fr/ie6/synapse-meshsim
+     cd synapse-meshsim
+     ```
+     Or, if it is already cloned, update the submodules:
+     ```
+     git submodule init
+     git submodule update
      ```
 
-   * Clone the `synapse-meshsim` repo (inside the `matrix-low-bandwidth` directory)
-     ```
-     matrix-low-bandwidth$ git clone https://gitlab.lip6.fr/ie6/synapse-meshsim
-     ```
-
-   * Clone the `coap-proxy` repo (inside the `matrix-low-bandwidth` directory)
-     ```
-     matrix-low-bandwidth$ git clone https://github.com/n-peugnet/coap-proxy
-     ```
-
-   * Run `docker build -t synapse -f meshsim-docker/Dockerfile .` from the top of the
-     `matrix-low-bandwidth` directory (***not*** inside the `synapse` repo)
+   * Run `docker build -t synapse .`
 
 #### Usage with Meshsim
 
