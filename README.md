@@ -39,8 +39,8 @@ to simplify making Matrix API call.
 
 #### Usage with Meshsim
 
-Checkout a copy of [Meshsim](https://gitlab.lip6.fr/ie6/meshsim),
-then run `./meshsim.py --start=path/to/start_hs.sh 0`.
+Install [Meshsim](https://gitlab.lip6.fr/ie6/meshsim),
+then run `meshsim.py --start=./start_hs.sh 0`.
 
  * Optionally edit `start_hs.sh` to add bind mount to a local working copy of
    synapse. This allows doing synapse dev without having to rebuild images. See
