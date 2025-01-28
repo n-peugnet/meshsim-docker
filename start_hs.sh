@@ -65,11 +65,11 @@ HOST_IP=$3
 # ...or whatever our bridge is, as PMTU doesn't seem to be working
 # and otherwise we'll get locked out of the guest.
 
-docker run -d --name synapse$NETWORK_ID.$HSID \
+docker run -d --name node$NETWORK_ID.$HSID \
 	--privileged \
 	--network mesh$NETWORK_ID \
-	--hostname synapse$HSID \
-	-e SYNAPSE_SERVER_NAME=synapse$HSID \
+	--hostname node$HSID \
+	-e SYNAPSE_SERVER_NAME=node$HSID \
 	-e SYNAPSE_REPORT_STATS=no \
 	-e SYNAPSE_ENABLE_REGISTRATION=yes \
 	-e SYNAPSE_LOG_LEVEL=INFO \

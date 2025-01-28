@@ -45,11 +45,11 @@ then run `./meshsim.py --start=path/to/start_hs.sh 0`.
    `start_hs.sh` for details. An example of the `docker run` command in `start_hs.sh` is below:
 
    ```
-   docker run -d --name synapse$NETWORK_ID.$HSID \
+   docker run -d --name node$NETWORK_ID.$HSID \
    	--privileged \
    	--network mesh$NETWORK_ID \
-   	--hostname synapse$HSID \
-   	-e SYNAPSE_SERVER_NAME=synapse$HSID \
+   	--hostname node$HSID \
+   	-e SYNAPSE_SERVER_NAME=node$HSID \
    	-e SYNAPSE_REPORT_STATS=no \
    	-e SYNAPSE_ENABLE_REGISTRATION=yes \
    	-e SYNAPSE_LOG_LEVEL=INFO \
@@ -74,8 +74,8 @@ To verify that everythig is working, you can realise the following checks.
    otherwise run `docker network inspect mesh` and find the Gateway IP.
  * check you can start a synapse via `./start_hs.sh 0 1 $DOCKER_IP` with 0 as networkid, 1 as hsid and DOCKER_IP being the docker network gateway IP.
  * check if it's running with `docker stats`
- * check the supervisor logs with `docker logs -f synapse1`
- * log into the container to poke around with `docker exec -it synapse0.1 /bin/bash`
+ * check the supervisor logs with `docker logs -f node1`
+ * log into the container to poke around with `docker exec -it node0.1 /bin/bash`
     * Actual synapse logs are located at `/var/log/supervisor/synapse*`
 
  * Check you can connect to its synapse at http://localhost:18001 (ports are 18000 + hsid + networkid*100).
@@ -87,8 +87,8 @@ To verify that everythig is working, you can realise the following checks.
 
  * shut it down nicely:
 
-       docker stop synapse0.1
-       docker rm synapse0.1
+       docker stop node0.1
+       docker rm node0.1
        docker network rm mesh0
 
 #### Using the CoAP proxy
