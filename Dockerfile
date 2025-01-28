@@ -98,7 +98,7 @@ COPY coap-proxy/maps /proxy/maps
 
 COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser /topologiser
 
-COPY start.sh start-synapse.py /
+COPY start-synapse.py /
 COPY conf /conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
@@ -111,4 +111,4 @@ ENV LD_PRELOAD=/usr/local/lib/libksm_preload.so
 # default is 32768 (8 4KB pages)
 ENV KSMP_MERGE_THRESHOLD=16384
 
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT ["/usr/bin/supervisord"]
