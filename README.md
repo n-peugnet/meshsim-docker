@@ -1,6 +1,8 @@
 # Synapse for Meshsim
 
 Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim).
+A user `matthew` with passord `secret` and a default token `fake_token` is created on each node,
+to simplify making Matrix API call.
 
 ## Build the image
 
@@ -74,7 +76,7 @@ To verify that everythig is working, you can realise the following checks.
    otherwise run `docker network inspect mesh` and find the Gateway IP.
  * check you can start a synapse via `./start_hs.sh 0 1 $DOCKER_IP` with 0 as networkid, 1 as hsid and DOCKER_IP being the docker network gateway IP.
  * check if it's running with `docker stats`
- * check the supervisor logs with `docker logs -f node1`
+ * check the supervisor logs with `docker logs -f node0.1`
  * log into the container to poke around with `docker exec -it node0.1 /bin/bash`
     * Actual synapse logs are located at `/var/log/supervisor/synapse*`
 
