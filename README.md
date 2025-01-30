@@ -3,6 +3,7 @@
 Docker image to run Synapse in [Meshsim](https://gitlab.lip6.fr/ie6/meshsim).
 A user `matthew` with passord `secret` and a default token `fake_token` is created on each node,
 to simplify making Matrix API call.
+One can use [ara](https://gitlab.lip6.fr/ie6/ara) to create a room and replay/simulate a conversation.
 
 ## Build the image
 
