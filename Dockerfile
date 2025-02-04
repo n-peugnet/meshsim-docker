@@ -78,6 +78,7 @@ RUN go build
 FROM docker.io/python:${PYTHON_VERSION}-slim-buster
 
 RUN apt-get update && apt-get install -y \
+    tinyproxy \
     sqlite3 \
     procps \
     net-tools \
@@ -105,6 +106,7 @@ COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser 
 COPY start-synapse.py /
 COPY conf /conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 
 VOLUME ["/data"]
 

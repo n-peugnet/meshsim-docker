@@ -40,6 +40,10 @@ listeners:
         compress: true
       - names: [federation]  # Federation APIs
         compress: false
+      {% if SYNAPSE_REPORT_STATS.lower() == "yes" %}
+      - names: [metrics]
+        compress: true
+      {% endif %}
   {% endif %}
 
   - port: 8008
@@ -53,6 +57,10 @@ listeners:
         compress: true
       - names: [federation]
         compress: false
+      {% if SYNAPSE_REPORT_STATS.lower() == "yes" %}
+      - names: [metrics]
+        compress: true
+      {% endif %}
 
 ## Database ##
 

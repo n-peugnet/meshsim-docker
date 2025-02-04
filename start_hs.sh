@@ -70,7 +70,7 @@ docker run -d --name node$NETWORK_ID.$HSID \
 	--network mesh$NETWORK_ID \
 	--hostname node$HSID \
 	-e SYNAPSE_SERVER_NAME=node$HSID \
-	-e SYNAPSE_REPORT_STATS=no \
+	-e SYNAPSE_REPORT_STATS=yes \
 	-e SYNAPSE_ENABLE_REGISTRATION=yes \
 	-e SYNAPSE_LOG_LEVEL=INFO \
 	-p $((18000 + HSID + NETWORK_ID * 100)):8008 \
@@ -97,3 +97,7 @@ docker run -d --name node$NETWORK_ID.$HSID \
 # Add node metrics scrape config for prometheus
 printf '[{"targets":["node%d:9100"],"labels":{"instance":"node%d"}}]\n' $HSID $HSID \
 	> /tmp/meshsim-mesh$NETWORK_ID/prometheus-conf/node$HSID.json
+
+# Add synapse metrics scrape config for prometheus
+printf '[{"targets":["node%d:7007"],"labels":{"instance":"node%d"}}]\n' $HSID $HSID \
+	> /tmp/meshsim-mesh$NETWORK_ID/prometheus-conf/synapse$HSID.json
