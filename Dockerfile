@@ -96,6 +96,10 @@ COPY --from=python-builder /install /usr/local
 COPY --from=go-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
 
+# Include prometheus node exporter
+COPY --from=docker.io/prom/node-exporter /bin/node_exporter /bin/node_exporter
+
+# Include meshsim's topologiser
 COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser /topologiser
 
 COPY start-synapse.py /
