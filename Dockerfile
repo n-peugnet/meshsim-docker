@@ -75,10 +75,37 @@ RUN go build
 ### Stage 2: runtime
 ###
 
-FROM docker.io/python:${PYTHON_VERSION}-slim-buster
+FROM docker.io/python:${PYTHON_VERSION}-slim-buster as synapse
 
+RUN apt-get update && apt-get install -y sqlite3
+
+COPY --from=python-builder /install /usr/local
+
+COPY --from=go-builder /build/coap-proxy /proxy/bin/
+COPY coap-proxy/maps /proxy/maps
+
+COPY start-synapse.py /
+COPY conf /conf
+
+VOLUME ["/data"]
+
+EXPOSE 8008/tcp 8448/tcp 5683/udp
+
+ENV LD_PRELOAD=/usr/local/lib/libksm_preload.so
+
+# default is 32768 (8 4KB pages)
+ENV KSMP_MERGE_THRESHOLD=16384
+
+ENTRYPOINT ["/start-synapse.py"]
+
+###
+### Stage 3: meshsim
+###
+
+FROM synapse
+
+# Install supervisord & other useful tools
 RUN apt-get update && apt-get install -y \
-    sqlite3 \
     procps \
     net-tools \
     iproute2 \
@@ -91,28 +118,12 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     netcat
 
-COPY --from=python-builder /install /usr/local
-
-COPY --from=go-builder /build/coap-proxy /proxy/bin/
-COPY coap-proxy/maps /proxy/maps
-
 # Include prometheus node exporter
 COPY --from=docker.io/prom/node-exporter /bin/node_exporter /bin/node_exporter
 
 # Include meshsim's topologiser
 COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser /topologiser
 
-COPY start-synapse.py /
-COPY conf /conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-VOLUME ["/data"]
-
-EXPOSE 8008/tcp 8448/tcp 3000/tcp 5683/udp
-
-ENV LD_PRELOAD=/usr/local/lib/libksm_preload.so
-
-# default is 32768 (8 4KB pages)
-ENV KSMP_MERGE_THRESHOLD=16384
 
 ENTRYPOINT ["/usr/bin/supervisord"]
