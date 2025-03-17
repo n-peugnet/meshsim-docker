@@ -26,6 +26,17 @@ ip_range_whitelist:
   - '127.0.0.1'
   - '::1'
 
+# Timeouts and retries
+federation:
+  #client_timeout: 180s                # default 60s
+  #max_short_retry_delay: 7s           # default 2s
+  max_long_retry_delay: 10s            # default 60s
+  #max_short_retries: 5                # default 3
+  max_long_retries: 20                 # default 10
+  #destination_min_retry_interval: 30s # default 10m
+  #destination_retry_multiplier: 5     # default 2
+  #destination_max_retry_interval: 12h # default 7d
+
 ## Ports ##
 
 listeners:
