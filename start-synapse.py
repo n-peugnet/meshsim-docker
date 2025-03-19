@@ -89,7 +89,7 @@ else:
     os.system("echo \"insert into schema_version(lock, version, upgraded) values ('X', 72, false)\" | sqlite3 /data/homeserver.db")
 
     # Register test account
-    sql = f"""insert into users(name, password_hash) values ('@matthew:{environ["SYNAPSE_SERVER_NAME"]}', '\\$2b\\$12\\$oOZr9g6bPScmPrpJHv/uuu2piCg7kN8ia/BAlfW6wske/1kLf8kze');
+    sql = f"""insert into users(name, password_hash, admin) values ('@matthew:{environ["SYNAPSE_SERVER_NAME"]}', '\\$2b\\$12\\$oOZr9g6bPScmPrpJHv/uuu2piCg7kN8ia/BAlfW6wske/1kLf8kze', 1);
 insert into access_tokens(id, user_id, token) values (123123, '@matthew:{environ["SYNAPSE_SERVER_NAME"]}', 'fake_token');"""
     os.system(f"echo \"{sql}\" | sqlite3 /data/homeserver.db");
 
