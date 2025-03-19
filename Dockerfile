@@ -4,7 +4,7 @@ ARG RUST_VERSION=1.79.0
 ###
 ### Stage 0: python builder
 ###
-FROM docker.io/python:${PYTHON_VERSION}-slim-buster as python-builder
+FROM docker.io/python:${PYTHON_VERSION}-slim-bookworm as python-builder
 
 # install the OS build deps
 
@@ -64,7 +64,7 @@ RUN pip install --prefix="/install" --no-warn-script-location \
 ### Stage 1: Go build
 ###
 
-FROM docker.io/golang:1.12-buster as go-builder
+FROM docker.io/golang:1.24-bookworm as go-builder
 
 COPY coap-proxy /build
 WORKDIR /build
@@ -75,7 +75,7 @@ RUN go build
 ### Stage 2: runtime
 ###
 
-FROM docker.io/python:${PYTHON_VERSION}-slim-buster as synapse
+FROM docker.io/python:${PYTHON_VERSION}-slim-bookworm as synapse
 
 RUN apt-get update && apt-get install -y sqlite3
 
@@ -116,7 +116,7 @@ RUN apt-get update && apt-get install -y \
     less \
     lsof \
     supervisor \
-    netcat
+    netcat-openbsd
 
 # Include prometheus node exporter
 COPY --from=docker.io/prom/node-exporter /bin/node_exporter /bin/node_exporter
