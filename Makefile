@@ -15,6 +15,10 @@ synapse-meshsim: synapse
 synapse-arm64:
 	docker build -t synapse-arm64 --target synapse --platform linux/arm64 .
 
+.PHONY: meshsim
+meshsim: synapse-meshsim
+	meshsim --start=./start_hs.sh 0
+
 .PHONY: push
 push: synapse-arm64
 	docker save synapse-arm64 | xz -T16 > /tmp/synapse-arm64
