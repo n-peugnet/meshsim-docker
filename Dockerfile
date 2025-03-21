@@ -61,10 +61,10 @@ RUN pip install --prefix="/install" --no-warn-script-location \
         /synapse
 
 ###
-### Stage 1: Go build
+### Stage 1: coap-proxy build
 ###
 
-FROM docker.io/golang:1.24-bookworm as go-builder
+FROM docker.io/golang:1.24-bookworm as coap-proxy-builder
 
 COPY coap-proxy /build
 WORKDIR /build
@@ -72,7 +72,18 @@ WORKDIR /build
 RUN go build
 
 ###
-### Stage 2: runtime
+### Stage 2: meshmon build
+###
+
+FROM docker.io/golang:1.24-bookworm as meshmon-builder
+
+COPY meshmon /build
+WORKDIR /build
+
+RUN go build
+
+###
+### Stage 3: runtime
 ###
 
 FROM docker.io/python:${PYTHON_VERSION}-slim-bookworm as synapse
@@ -81,8 +92,10 @@ RUN apt-get update && apt-get install -y sqlite3
 
 COPY --from=python-builder /install /usr/local
 
-COPY --from=go-builder /build/coap-proxy /proxy/bin/
+COPY --from=coap-proxy-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
+
+COPY --from=meshmon-builder /build/meshmon /usr/local/bin/
 
 COPY start-synapse.py /
 COPY conf /conf
@@ -99,7 +112,7 @@ ENV KSMP_MERGE_THRESHOLD=16384
 ENTRYPOINT ["/start-synapse.py"]
 
 ###
-### Stage 3: meshsim
+### Stage 4: meshsim
 ###
 
 FROM synapse
