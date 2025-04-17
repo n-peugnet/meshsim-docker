@@ -79,7 +79,7 @@ docker run -d --name node$NETWORK_ID.$HSID \
 	-e SYNAPSE_LOG_HOST=$HOST_IP:3000 \
 	-e PROXY_DUMP_PAYLOADS=1 \
 	-e NETGRAPH_URL=http://$HOST_IP:3000/data \
-	synapse-meshsim
+	${IMAGE:-synapse-meshsim}
 
 # or replace the last line for a dummy docker...
 # 	--entrypoint '' \
