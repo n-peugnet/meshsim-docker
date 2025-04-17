@@ -1,22 +1,22 @@
 HOSTIDS := 0 1
+LOCAL_TARGETS := synapse synapse-meshsim synapse-meshmon
+
+# Image used for running meshsim
+export IMAGE ?= synapse-meshsim
 
 .PHONY: all
-all: synapse-meshsim synapse-arm64
+all: $(LOCAL_TARGETS) synapse-arm64
 
-.PHONY: synapse
-synapse:
-	docker build -t synapse --target synapse .
-
-.PHONY: synapse-meshsim
-synapse-meshsim: synapse
-	docker build -t synapse-meshsim .
+.PHONY: $(LOCAL_TARGETS)
+$(LOCAL_TARGETS):
+	docker build -t $@ --target $@ .
 
 .PHONY: synapse-arm64
 synapse-arm64:
 	docker build -t synapse-arm64 --target synapse --platform linux/arm64 .
 
 .PHONY: meshsim
-meshsim: synapse-meshsim
+meshsim: $(IMAGE)
 	meshsim --start=./start_hs.sh 0
 
 .PHONY: push

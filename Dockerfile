@@ -95,8 +95,6 @@ COPY --from=python-builder /install /usr/local
 COPY --from=coap-proxy-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
 
-COPY --from=meshmon-builder /build/meshmon /usr/local/bin/
-
 COPY start-synapse.py /
 COPY conf /conf
 
@@ -115,7 +113,7 @@ ENTRYPOINT ["/start-synapse.py"]
 ### Stage 4: meshsim
 ###
 
-FROM synapse
+FROM synapse as synapse-meshsim
 
 # Install supervisord & other useful tools
 RUN apt-get update && apt-get install -y \
@@ -140,3 +138,13 @@ COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ENTRYPOINT ["/usr/bin/supervisord"]
+
+###
+### Stage 5: meshmon
+###
+
+FROM synapse-meshsim as synapse-meshmon
+
+COPY --from=meshmon-builder /build/meshmon /usr/local/bin/
+
+COPY supervisord-meshmon.conf /etc/supervisor/conf.d/supervisord.conf
