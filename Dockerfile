@@ -148,3 +148,11 @@ FROM synapse-meshsim as synapse-meshmon
 COPY --from=meshmon-builder /build/meshmon /usr/local/bin/
 
 COPY supervisord-meshmon.conf /etc/supervisor/conf.d/supervisord.conf
+
+###
+### Stage 6: meshmon-has_events
+###
+
+FROM synapse-meshmon as synapse-meshmon-has_events
+
+ENV SYNAPSE_CHECK_HAS_EVENTS=1
