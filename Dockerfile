@@ -23,41 +23,20 @@ ARG RUST_VERSION
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${RUST_VERSION}
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# for ksm_preload
-RUN apt-get install -y \
-        git \
-        cmake
+# install and build deps in a previous step so we do not need to do it on
+# each change to the python code
 
-# build things which have slow build steps, before we copy synapse, so that
-# the layer can be cached.
-#
-# (we really just care about caching a wheel here, as the "pip install" below
-# will install them again.)
+RUN mkdir -p /synapse/synapse && touch /synapse/synapse/__init__.py
+COPY synapse/pyproject.toml synapse/build_rust.py synapse/Cargo.* synapse/README.rst /synapse/
+COPY synapse/rust /synapse/rust
+RUN pip install --prefix="/install" --no-warn-script-location --no-clean \
+        Twisted[tls]==24.7.0 \
+        /synapse
 
-RUN pip install --prefix="/install" --no-warn-script-location \
-        msgpack-python \
-        pillow \
-        pynacl
-
-# N.B. to work, this needs:
-# echo 1 > /sys/kernel/mm/ksm/run
-# echo 31250 > /sys/kernel/mm/ksm/pages_to_scan # 128MB of 4KB pages at a time
-# echo 10000 > /sys/kernel/mm/ksm/pages_to_scan # 40MB of pages at a time
-# ...to be run in the Docker host
-
-RUN git clone https://github.com/unbrice/ksm_preload && \
-    cd ksm_preload && \
-    cmake . && \
-    make && \
-    cp libksm_preload.so /install/lib
-
-# now install synapse and all of the python deps to /install.
+# now install synapse itself to /install.
 
 COPY synapse/ /synapse
-RUN pip install --prefix="/install" --no-warn-script-location \
-        Twisted[tls]==24.7.0 \
-        simplejson \
-        lxml \
+RUN pip install --prefix="/install" --no-warn-script-location --no-deps \
         /synapse
 
 ###
@@ -83,16 +62,36 @@ WORKDIR /build
 RUN go build
 
 ###
-### Stage 3: runtime
+### Stage 3: libksm build
 ###
 
-FROM docker.io/python:${PYTHON_VERSION}-slim-bookworm as synapse
+FROM docker.io/debian:bookworm-slim as libksm-builder
+WORKDIR /build
+
+# for ksm_preload
+RUN apt-get update && apt-get install -y \
+        build-essential \
+        git \
+        cmake
+
+# N.B. to work, this needs:
+# echo 1 > /sys/kernel/mm/ksm/run
+# echo 31250 > /sys/kernel/mm/ksm/pages_to_scan # 128MB of 4KB pages at a time
+# echo 10000 > /sys/kernel/mm/ksm/pages_to_scan # 40MB of pages at a time
+# ...to be run in the Docker host
+
+RUN git clone https://github.com/unbrice/ksm_preload . && \
+    cmake . && \
+    make
+
+###
+### Stage 4.0: base runtime files
+###
+
+FROM docker.io/python:${PYTHON_VERSION}-slim-bookworm as synapse-runtime
 
 RUN apt-get update && apt-get install -y sqlite3
 
-COPY --from=python-builder /install /usr/local
-
-COPY --from=coap-proxy-builder /build/coap-proxy /proxy/bin/
 COPY coap-proxy/maps /proxy/maps
 
 COPY start-synapse.py /
@@ -100,20 +99,24 @@ COPY conf /conf
 
 VOLUME ["/data"]
 
+###
+### Stage 4.1 minimal synapse image
+###
+
+FROM synapse-runtime as synapse
+
+COPY --from=coap-proxy-builder /build/coap-proxy /proxy/bin/
+COPY --from=python-builder /install /usr/local
+
 EXPOSE 8008/tcp 8448/tcp 5683/udp
-
-ENV LD_PRELOAD=/usr/local/lib/libksm_preload.so
-
-# default is 32768 (8 4KB pages)
-ENV KSMP_MERGE_THRESHOLD=16384
 
 ENTRYPOINT ["/start-synapse.py"]
 
 ###
-### Stage 4: meshsim
+### Stage 4.2: synapse image for meshsim
 ###
 
-FROM synapse as synapse-meshsim
+FROM synapse-runtime as synapse-meshsim
 
 # Install supervisord & other useful tools
 RUN apt-get update && apt-get install -y \
@@ -136,6 +139,15 @@ COPY --from=docker.io/prom/node-exporter /bin/node_exporter /bin/node_exporter
 COPY --from=gitlab.lip6.fr:5050/ie6/meshsim/topologiser:latest /bin/topologiser /topologiser
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+COPY --from=coap-proxy-builder /build/coap-proxy /proxy/bin/
+COPY --from=python-builder /install /usr/local
+COPY --from=libksm-builder /build/libksm_preload.so /usr/local/lib/
+
+ENV LD_PRELOAD=/usr/local/lib/libksm_preload.so
+
+# default is 32768 (8 4KB pages)
+ENV KSMP_MERGE_THRESHOLD=16384
 
 ENTRYPOINT ["/usr/bin/supervisord"]
 
