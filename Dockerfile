@@ -44,10 +44,12 @@ RUN pip install --prefix="/install" --no-warn-script-location --no-deps \
 ###
 
 FROM docker.io/golang:1.24-bookworm as coap-proxy-builder
-
-COPY coap-proxy /build
 WORKDIR /build
 
+COPY coap-proxy/go.mod coap-proxy/go.sum ./
+RUN go mod download
+
+COPY coap-proxy .
 RUN go build
 
 ###
@@ -55,10 +57,12 @@ RUN go build
 ###
 
 FROM docker.io/golang:1.24-bookworm as meshmon-builder
-
-COPY meshmon /build
 WORKDIR /build
 
+COPY meshmon/go.mod meshmon/go.sum ./
+RUN go mod download
+
+COPY meshmon .
 RUN go build
 
 ###
