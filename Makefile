@@ -1,5 +1,5 @@
 HOSTIDS := 0 1
-LOCAL_TARGETS := synapse synapse-meshsim synapse-meshmon synapse-meshmon-has_events
+LOCAL_TARGETS := synapse-meshmon-has_events synapse-meshmon synapse-meshsim synapse
 
 # Image used for running meshsim
 export IMAGE ?= synapse-meshsim
