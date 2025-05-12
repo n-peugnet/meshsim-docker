@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"slices"
+	"sync"
+	"time"
 
 	"gitlab.lip6.fr/ie6/synapse-meshsim/meshmon/httputils"
 	"gonum.org/v1/gonum/graph"
@@ -27,22 +28,48 @@ func NewDestination(node graph.Node, path []graph.Node) Destination {
 	}
 }
 
+type DestinationMap struct {
+	data  map[int64]bool
+	mutex sync.RWMutex
+}
+
+func NewDestinationMap() *DestinationMap {
+	return &DestinationMap{
+		data: make(map[int64]bool),
+	}
+}
+
+func (m *DestinationMap) Has(dest graph.Node) bool {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.data[dest.ID()]
+}
+
+func (m *DestinationMap) Replace(dests []Destination) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	clear(m.data)
+	for _, d := range dests {
+		m.data[d.ID()] = true
+	}
+}
+
 type Waker struct {
-	id           int64
-	prevDests    map[int64]bool
-	delayedDests []*Node
+	id         int64
+	knownDests *DestinationMap
 }
 
 func NewWaker(id int64) *Waker {
 	return &Waker{
-		id:        id,
-		prevDests: make(map[int64]bool),
+		id:         id,
+		knownDests: NewDestinationMap(),
 	}
 }
 
-func (a *Waker) Handle(g graph.Graph) {
+func (w *Waker) Handle(g graph.Graph) {
 	// Find self
-	self := g.Node(a.id)
+	self := g.Node(w.id)
 	log.Printf("current: %v", self)
 
 	// Find paths from self
@@ -62,44 +89,44 @@ func (a *Waker) Handle(g graph.Graph) {
 		log.Printf("%v --> %v : %v (weight: %v)", paths.From(), nodes.Node(), path, weight)
 	}
 
-	// Wakeup delayed destinations
-	for _, n := range a.delayedDests {
-		reachable := slices.ContainsFunc(dests, func(d Destination) bool {
-			return d.ID() == n.ID()
-		})
-		if !reachable {
-			log.Printf("ignoring not reachable delayed dest: %v (%v)", n.Hostname, n.IP)
-			continue
+	// Find new destinations
+	var newDests []Destination
+	var newDelayedDests []Destination
+
+	for _, dest := range dests {
+		if !w.knownDests.Has(dest) {
+			if w.knownDests.Has(dest.Path[1]) {
+				log.Printf("delay waking up new dest: %v (%v)", dest.Hostname, dest.IP)
+				newDelayedDests = append(newDelayedDests, dest)
+			} else {
+				newDests = append(newDests, dest)
+			}
 		}
-		log.Printf("waking up delayed dest: %v (%v)", n.Hostname, n.IP)
-		if err := wakeupDestination(n.Hostname); err != nil {
+	}
+
+	w.knownDests.Replace(dests)
+
+	// Wake up new destinations
+	for _, dest := range newDests {
+		log.Printf("waking up new dest: %v (%v)", dest.Hostname, dest.IP)
+		if err := wakeupDestination(dest.Hostname); err != nil {
 			log.Print(err)
 		}
 	}
-	a.delayedDests = nil
 
-	// Wakeup new destinations
-alldests:
-	for _, dest := range dests {
-		if !a.prevDests[dest.ID()] {
-			for _, n := range dest.Path[1:] {
-				if a.prevDests[n.ID()] {
-					log.Printf("delay waking up new dest: %v (%v)", dest.Hostname, dest.IP)
-					a.delayedDests = append(a.delayedDests, dest.Node)
-					continue alldests
-				}
-			}
-			log.Printf("waking up new dest: %v (%v)", dest.Hostname, dest.IP)
-			if err := wakeupDestination(dest.Hostname); err != nil {
-				log.Print(err)
-			}
-		}
-	}
+	time.AfterFunc(3*time.Second, func() { w.wakeupDelayed(newDelayedDests) })
+}
 
-	// Save dests
-	clear(a.prevDests)
+func (w *Waker) wakeupDelayed(dests []Destination) {
 	for _, d := range dests {
-		a.prevDests[d.ID()] = true
+		if !w.knownDests.Has(d) {
+			log.Printf("ignoring not reachable delayed dest: %v (%v)", d.Hostname, d.IP)
+			continue
+		}
+		log.Printf("waking up delayed dest: %v (%v)", d.Hostname, d.IP)
+		if err := wakeupDestination(d.Hostname); err != nil {
+			log.Print(err)
+		}
 	}
 }
 
