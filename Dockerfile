@@ -47,10 +47,10 @@ FROM docker.io/golang:1.24-bookworm as coap-proxy-builder
 WORKDIR /build
 
 COPY coap-proxy/go.mod coap-proxy/go.sum ./
-RUN go mod download
+RUN go mod download -x
 
 COPY coap-proxy .
-RUN go build
+RUN go build -v
 
 ###
 ### Stage 2: meshmon build
@@ -60,10 +60,10 @@ FROM docker.io/golang:1.24-bookworm as meshmon-builder
 WORKDIR /build
 
 COPY meshmon/go.mod meshmon/go.sum ./
-RUN go mod download
+RUN go mod download -x
 
 COPY meshmon .
-RUN go build
+RUN go build -v
 
 ###
 ### Stage 3: libksm build
