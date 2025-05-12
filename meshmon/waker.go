@@ -68,10 +68,10 @@ func (a *Waker) Handle(g graph.Graph) {
 			return d.ID() == n.ID()
 		})
 		if !reachable {
-			log.Printf("ignoring not reachable delayed dest: %v", n.Hostname)
+			log.Printf("ignoring not reachable delayed dest: %v (%v)", n.Hostname, n.IP)
 			continue
 		}
-		log.Printf("waking up delayed dest: %v", n.Hostname)
+		log.Printf("waking up delayed dest: %v (%v)", n.Hostname, n.IP)
 		if err := wakeupDestination(n.Hostname); err != nil {
 			log.Print(err)
 		}
@@ -84,12 +84,12 @@ alldests:
 		if !a.prevDests[dest.ID()] {
 			for _, n := range dest.Path[1:] {
 				if a.prevDests[n.ID()] {
-					log.Printf("delay waking up new dest: %v", dest.Hostname)
+					log.Printf("delay waking up new dest: %v (%v)", dest.Hostname, dest.IP)
 					a.delayedDests = append(a.delayedDests, dest.Node)
 					continue alldests
 				}
 			}
-			log.Printf("waking up new dest: %v", dest.Hostname)
+			log.Printf("waking up new dest: %v (%v)", dest.Hostname, dest.IP)
 			if err := wakeupDestination(dest.Hostname); err != nil {
 				log.Print(err)
 			}
