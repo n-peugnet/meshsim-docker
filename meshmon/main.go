@@ -11,8 +11,11 @@ import (
 )
 
 func main() {
-	url := os.Getenv("NETGRAPH_URL")
-	auth := os.Getenv("NETGRAPH_AUTH")
+	monitor := Monitor{
+		URL:  os.Getenv("NETGRAPH_URL"),
+		Auth: os.Getenv("NETGRAPH_AUTH"),
+	}
+
 	var ip netip.Addr
 	iface, _ := net.InterfaceByName("eth0")
 	addrs, _ := iface.Addrs()
@@ -25,26 +28,8 @@ func main() {
 		}
 	}
 	log.Println("ip:", ip)
-
-	client, err := createClient(url)
-	if err != nil {
-		panic(err)
-	}
-	request, err := createRequest(url, auth)
-	if err != nil {
-		panic(err)
-	}
-
 	waker := NewWaker(ip2id(ip))
-	c := time.Tick(2 * time.Second)
-	for range c {
-		// Obtain graph
-		g, err := requestGraph(client, request)
-		if err != nil {
-			log.Printf("error: %v", err)
-			continue
-		}
 
-		waker.WakeNewDestinations(g)
-	}
+	monitor.AddHandler(waker)
+	monitor.Run(2 * time.Second)
 }
