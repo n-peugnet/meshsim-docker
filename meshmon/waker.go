@@ -3,12 +3,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"slices"
 
+	"gitlab.lip6.fr/ie6/synapse-meshsim/meshmon/httputils"
 	"gonum.org/v1/gonum/graph"
 	"gonum.org/v1/gonum/graph/path"
 )
+
+var wakeupClient = http.Client{Transport: httputils.NewLogTransport(http.DefaultTransport)}
 
 type Destination struct {
 	*Node
@@ -35,7 +40,7 @@ func NewWaker(id int64) *Waker {
 	}
 }
 
-func (a *Waker) WakeNewDestinations(g graph.Graph) {
+func (a *Waker) Handle(g graph.Graph) {
 	// Find self
 	self := g.Node(a.id)
 	log.Printf("current: %v", self)
@@ -96,4 +101,16 @@ alldests:
 	for _, d := range dests {
 		a.prevDests[d.ID()] = true
 	}
+}
+
+func wakeupDestination(hostname string) error {
+	url := fmt.Sprintf("http://localhost:8008/_synapse/admin/v1/federation/destinations/%s/reset_connection", hostname)
+	request, _ := http.NewRequest("POST", url, nil)
+	request.Header.Set("Authorization", "Bearer fake_token")
+	response, err := wakeupClient.Do(request)
+	if err != nil {
+		return err
+	}
+	response.Body.Close()
+	return nil
 }

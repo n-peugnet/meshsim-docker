@@ -5,14 +5,53 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"gitlab.lip6.fr/ie6/synapse-meshsim/meshmon/httputils"
 	"gonum.org/v1/gonum/graph"
 )
 
-var wakeupClient = http.Client{Transport: httputils.NewLogTransport(http.DefaultTransport)}
+type Handler interface {
+	Handle(graph.Graph)
+}
+
+type Monitor struct {
+	URL      string
+	Auth     string
+	Handlers []Handler
+}
+
+func (m *Monitor) AddHandler(handler Handler) {
+	m.Handlers = append(m.Handlers, handler)
+}
+
+func (m *Monitor) Run(interval time.Duration) {
+	client, err := createClient(m.URL)
+	if err != nil {
+		panic(err)
+	}
+	request, err := createRequest(m.URL, m.Auth)
+	if err != nil {
+		panic(err)
+	}
+
+	c := time.Tick(interval)
+	for range c {
+		// Obtain graph
+		g, err := requestGraph(client, request)
+		if err != nil {
+			log.Printf("error: %v", err)
+			continue
+		}
+
+		for _, handler := range m.Handlers {
+			handler.Handle(g)
+		}
+	}
+}
 
 func createClient(netgraphURLStr string) (*http.Client, error) {
 	netgraphURL, err := url.Parse(netgraphURLStr)
@@ -61,16 +100,4 @@ func requestGraph(client *http.Client, request *http.Request) (graph.Graph, erro
 		return nil, fmt.Errorf("parse graphml: %w", err)
 	}
 	return g, nil
-}
-
-func wakeupDestination(hostname string) error {
-	url := fmt.Sprintf("http://localhost:8008/_synapse/admin/v1/federation/destinations/%s/reset_connection", hostname)
-	request, _ := http.NewRequest("POST", url, nil)
-	request.Header.Set("Authorization", "Bearer fake_token")
-	response, err := wakeupClient.Do(request)
-	if err != nil {
-		return err
-	}
-	response.Body.Close()
-	return nil
 }
