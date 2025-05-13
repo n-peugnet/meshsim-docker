@@ -28,7 +28,9 @@ func main() {
 		}
 	}
 	log.Println("ip:", ip)
+	enableDelayed := os.Getenv("MESHMON_ENABLE_DELAYED") != ""
 	waker := NewWaker(ip2id(ip))
+	waker.EnableDelayed(enableDelayed)
 
 	monitor.AddHandler(waker)
 	monitor.Run(2 * time.Second)

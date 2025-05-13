@@ -56,8 +56,9 @@ func (m *DestinationMap) Replace(dests []Destination) {
 }
 
 type Waker struct {
-	id         int64
-	knownDests *DestinationMap
+	id            int64
+	enableDelayed bool
+	knownDests    *DestinationMap
 }
 
 func NewWaker(id int64) *Waker {
@@ -66,6 +67,8 @@ func NewWaker(id int64) *Waker {
 		knownDests: NewDestinationMap(),
 	}
 }
+
+func (w *Waker) EnableDelayed(enable bool) { w.enableDelayed = enable }
 
 func (w *Waker) Handle(g graph.Graph) {
 	// Find self
@@ -95,7 +98,7 @@ func (w *Waker) Handle(g graph.Graph) {
 
 	for _, dest := range dests {
 		if !w.knownDests.Has(dest) {
-			if w.knownDests.Has(dest.Path[1]) {
+			if w.enableDelayed && w.knownDests.Has(dest.Path[1]) {
 				log.Printf("delay waking up new dest: %v (%v)", dest.Hostname, dest.IP)
 				newDelayedDests = append(newDelayedDests, dest)
 			} else {
