@@ -136,6 +136,11 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     netcat-openbsd
 
+# Install mateus' exp0
+COPY mateus-exp0/requirements.txt mateus-exp0/requirements.txt
+RUN python3 -m pip install -r mateus-exp0/requirements.txt
+COPY mateus-exp0/*.py mateus-exp0
+
 # Include prometheus node exporter
 COPY --from=docker.io/prom/node-exporter /bin/node_exporter /bin/node_exporter
 
