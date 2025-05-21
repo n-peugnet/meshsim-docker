@@ -36,7 +36,10 @@ One can use [ara](https://gitlab.lip6.fr/ie6/ara) to create a room and replay/si
      git submodule update
      ```
 
-   * Run `docker build -t synapse .`
+   * Run the build command:
+     ```
+     make synapse-meshsim
+     ```
 
 #### Usage with Meshsim
 
